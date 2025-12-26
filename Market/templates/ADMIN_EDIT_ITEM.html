@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block body %}
+<h1 style="text-align: center;">Edit item {{ item.name }}</h1>
+<hr style="background-color: #FFF;">
+
+<form method="post" style="max-width: 500px; margin: 0 auto;">
+    <div class="form-group">
+        <label for="name">Name</label>
+        <input class="form-control" id="name" name="name" value="{{ item.name }}">
+    </div>
+
+    <div class="form-group">
+        <label for="price">Price</label>
+        <input class="form-control" id="price" name="price" type="number" value="{{ item.price }}">
+    </div>
+
+    <div class="form-group">
+        <label for="barcode">Barcode</label>
+        <input class="form-control" id="barcode" name="barcode" value="{{ item.barcode }}">
+    </div>
+
+    <div class="form-group">
+        <label for="description">Description</label>
+        <textarea class="form-control" id="description" name="description" rows="4">{{ item.description }}</textarea>
+    </div>
+
+    <button type="submit" class="btn btn-success mt-3">Save</button>
+    <a href="{{ url_for('AdminPage') }}" class="btn btn-secondary mt-3">Cancel</a>
+</form>
+{% endblock %}

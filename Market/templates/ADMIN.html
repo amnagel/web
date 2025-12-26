@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block body %}
+    <h1 style="text-align: center;">Welcome to Admin Panel</h1>
+    <hr style="background-color: #FFF;">
+
+    <div class="row" style="margin-left: 5px; margin-right: 5px;">
+
+        <!-- LEFT: CONTROL PRODUCTS -->
+        <div class="col-8">
+            <h3 style="text-align: center;">Control Products</h3>
+
+            <div style="text-align: right; margin-bottom: 10px;">
+                <a href="{{ url_for('admin_add_item') }}" class="btn btn-success">
+                    Add item
+                </a>
+            </div>
+
+            <table class="table table-hover table-dark">
+                <thead>
+                    <tr>
+                        <th scope="col">Id</th>
+                        <th scope="col">Name</th>
+                        <th scope="col">Price</th>
+                        <th scope="col">Owner</th>
+                        <th scope="col">Control</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.id }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.prettier_price }}</td>
+                        <td>
+                            {% if item.owned_user %}
+                                <strong>{{ item.owned_user.username }}</strong>
+                            {% else %}
+                                <span class="text-muted">None</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{{ url_for('admin_update_item', item_id=item.id) }}"
+                               class="btn btn-sm btn-outline-info">
+                                Update
+                            </a>
+                            <form method="post"
+                                  action="{{ url_for('admin_delete_item', item_id=item.id) }}"
+                                  style="display:inline;">
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Delete this item?');">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- RIGHT: CONTROL USERS -->
+        <div class="col-4">
+            <h3 style="text-align: center;">Control Users</h3>
+            <table class="table table-hover table-dark">
+                <thead>
+                    <tr>
+                        <th scope="col">Id</th>
+                        <th scope="col">Username</th>
+                        <th scope="col">Budget</th>
+                        <th scope="col">Cart</th>
+                        <th scope="col">Control</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <td>{{ user.id }}</td>
+                        <td>{{ user.username }}</td>
+
+                        <!-- Бюджет + форма изменения -->
+                        <td>
+                            <form method="post"
+                                  action="{{ url_for('admin_update_user_budget', user_id=user.id) }}"
+                                  style="display:inline-flex; gap: 5px;">
+                                <input type="number"
+                                       name="budget"
+                                       value="{{ user.budget }}"
+                                       class="form-control form-control-sm"
+                                       style="width: 100px;">
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-info">
+                                    Save
+                                </button>
+                            </form>
+                            <div>
+                                <small class="text-muted">
+                                    Current: {{ user.prettier_budget }}
+                                </small>
+                            </div>
+                        </td>
+
+                        {% if user.items.__len__() != 0 %}
+                        <td>
+                            <strong style="text-align: center;">
+                                {{ user.items.__len__() }}
+                            </strong>
+                            Items
+                        </td>
+                        {% else %}
+                        <td>Empty</td>
+                        {% endif %}
+
+                        <td>
+                            <form method="post"
+                                  action="{{ url_for('admin_delete_user', user_id=user.id) }}"
+                                  style="display:inline;">
+                                <button type="submit"
+                                        class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Delete this user?');">
+                                    Delete
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+{% endblock %}

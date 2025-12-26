@@ -1,0 +1,178 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="container mt-4">
+    <h2>Checkout</h2>
+
+    <!-- Краткое резюме корзины -->
+    <table class="table table-hover table-dark">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Count</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for ci in cart_items %}
+            <tr>
+                <td>{{ ci.item.name }}</td>
+                <td>{{ ci.quantity }}</td>
+                <td>{{ ci.line_total() }} $</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <h4>Total: {{ total }} $</h4>
+
+    <form method="POST" action="{{ url_for('cart_checkout') }}">
+        {{ purchase_form.hidden_tag() }}
+
+        <!-- Способ оплаты -->
+        <div class="form-group mt-3">
+            <label><strong>Payment method</strong></label><br>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio"
+                       name="payment_method" id="pay-cash"
+                       value="cash" checked>
+                <label class="form-check-label" for="pay-cash">Cash</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio"
+                       name="payment_method" id="pay-card"
+                       value="card">
+                <label class="form-check-label" for="pay-card">credit card</label>
+            </div>
+        </div>
+
+        <!-- Способ доставки -->
+        <div class="form-group mt-3">
+            <label><strong>delivery method</strong></label><br>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio"
+                       name="delivery_method" id="del-pickup"
+                       value="pickup" checked>
+                <label class="form-check-label" for="del-pickup">Pickup</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio"
+                       name="delivery_method" id="del-courier"
+                       value="courier">
+                <label class="form-check-label" for="del-courier">Delivery by courier</label>
+            </div>
+        </div>
+
+        <div id="card-block" style="display:none;">
+          <div class="form-group">
+            <label for="card_number">Card number</label>
+            <input type="text"
+                   class="form-control"
+                   id="card_number"
+                   name="card_number"
+                   placeholder="0000 0000 0000 0000"
+                   maxlength="19"
+                   inputmode="numeric"
+                   pattern="\d{13,19}">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group col-6">
+              <label for="card_expiry">Expiry date (MM/YY)</label>
+              <input type="text"
+                     class="form-control"
+                     id="card_expiry"
+                     name="card_expiry"
+                     placeholder="12/29"
+                     pattern="(0[1-9]|1[0-2])\/\d{2}">
+            </div>
+            <div class="form-group col-6">
+              <label for="card_cvv">CVV</label>
+              <input type="password"
+                     class="form-control"
+                     id="card_cvv"
+                     name="card_cvv"
+                     maxlength="4"
+                     inputmode="numeric"
+                     pattern="\d{3,4}">
+            </div>
+          </div>
+        </div>
+
+        <!-- Самовывоз: выбор ПВЗ -->
+        <div class="form-group mt-3" id="pickup-block">
+            <label for="pickup_point"><strong>Pickup point</strong></label>
+            <select class="form-control" id="pickup_point" name="pickup_point">
+                <option value="ПВЗ 1, ул. Ленина 10">ПВЗ 1, ул. Ленина 10</option>
+                <option value="ПВЗ 2, пр-т Мира 25">ПВЗ 2, пр-т Мира 25</option>
+                <option value="ПВЗ 3, ул. Пушкина 5">ПВЗ 3, ул. Пушкина 5</option>
+                <option value="ПВЗ 4, ТЦ 'Город', 3 этаж">
+                    ПВЗ 4, ТЦ "Город", 3 этаж
+                </option>
+            </select>
+        </div>
+
+        <!-- Курьер: адрес -->
+        <div class="form-group mt-3" id="courier-block" style="display:none;">
+            <label for="address"><strong>Адрес доставки</strong></label>
+            <input type="text" class="form-control" id="address"
+                   name="address"
+                   placeholder="Город, улица, дом, квартира">
+        </div>
+
+        <button type="submit" class="btn btn-success mt-4">
+            Create order
+        </button>
+        <a href="{{ url_for('cart') }}" class="btn btn-secondary mt-4">
+            Back to card
+        </a>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const pickupBlock = document.getElementById('pickup-block');
+    const courierBlock = document.getElementById('courier-block');
+
+    function toggleDelivery() {
+        const method = document.querySelector('input[name="delivery_method"]:checked').value;
+        if (method === 'pickup') {
+            pickupBlock.style.display = 'block';
+            courierBlock.style.display = 'none';
+        } else {
+            pickupBlock.style.display = 'none';
+            courierBlock.style.display = 'block';
+        }
+    }
+
+    document.querySelectorAll('input[name="delivery_method"]').forEach(function (el) {
+        el.addEventListener('change', toggleDelivery);
+    });
+
+    toggleDelivery();
+});
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const cardBlock = document.getElementById('card-block');
+  const cardNumber = document.getElementById('card_number');
+  const cardExpiry = document.getElementById('card_expiry');
+  const cardCvv = document.getElementById('card_cvv');
+  const radios = document.querySelectorAll('input[name="payment_method"]');
+
+  function toggleCard() {
+    const isCard = document.getElementById('pay-card').checked;
+    cardBlock.style.display = isCard ? 'block' : 'none';
+    cardNumber.required = isCard;
+    cardExpiry.required = isCard;
+    cardCvv.required = isCard;
+  }
+
+  radios.forEach(r => r.addEventListener('change', toggleCard));
+  toggleCard();
+});
+</script>
+
+
+{% endblock %}
